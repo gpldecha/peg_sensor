@@ -96,3 +96,7 @@ target_link_libraries(${PROJECT_NAME}  ${catkin_LIBRARIES}  ${LIB_STATS} )
 add_executable(peg_sensor_classifier_node ${SRC_DIR}/peg_sensor_classifier_node.cpp)
 target_link_libraries(peg_sensor_classifier_node ${catkin_LIBRARIES} ${PROJECT_NAME}  )
 
+add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
+add_dependencies(peg_sensor_classifier_node ${PROJECT_NAME}_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
+
+

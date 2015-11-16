@@ -27,7 +27,7 @@ public:
 
 private:
 
-    GMM       gmm;
+    stats::GMM       gmm;
     arma::vec x;
 
 };
