@@ -10,8 +10,8 @@ Peg_sensor_clasifier::Peg_sensor_clasifier(ros::NodeHandle&   nh,
                                            Sensor_manager&    sensor_manager,
                                            const std::string& ft_topic_name,
                                            const std::string& y_topic_name):
- peg_pos_listener(fixed_frame,peg_link_name),
-  sensor_manager(sensor_manager)
+    peg_pos_listener(fixed_frame,peg_link_name),
+    sensor_manager(sensor_manager)
 {
 
 
@@ -40,7 +40,24 @@ void Peg_sensor_clasifier::update(){
     opti_rviz::type_conv::tf2mat(peg_orient_tf,peg_orient);
     opti_rviz::type_conv::tf2vec(peg_origin_tf,peg_origin);
 
-    sensor_manager.update_peg(Y,peg_origin,peg_orient);
+    switch(sensor_manager.t_sensor){
+    case psm::MODEL:
+    {
+        sensor_manager.update_peg(Y,peg_origin,peg_orient);
+        break;
+    }
+    case psm::FT:
+    {
+        sensor_manager.update_peg(Y,ft_force,ft_torque);
+        break;
+    }
+    default:
+    {
+        std::cout<< "error no Peg_sensor_classifer::update()"<<std::endl;
+        break;
+    }
+    }
+
 
     y_msg.data.resize(Y.n_elem);
     for(std::size_t i = 0; i < Y.n_elem;i++){

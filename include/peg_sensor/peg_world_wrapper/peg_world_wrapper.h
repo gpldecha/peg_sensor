@@ -37,7 +37,7 @@ public:
                       const std::string& fixed_frame,
                       const std::string table_link_name      = "link_wall",
                       const std::string socket_link_name     = "link_socket",
-                      const std::string socket_link_box_name = "link_wall");
+                      const std::string socket_link_box_name = "wbox_socket");
 
   //  void set_table_socket_origin(const arma::fcolvec3& origin,const arma::fcolvec3& rpy);
 

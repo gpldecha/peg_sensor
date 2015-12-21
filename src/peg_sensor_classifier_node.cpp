@@ -34,7 +34,7 @@ int main(int argc,char** argv){
     std::map<std::string,std::string> input;
     input["-y_topic"]           = "";
     input["-ft_topic"]          = "";
-    input["-fixed_frame"]       = "/world_frame";
+    input["-fixed_frame"]       = "/world";
     input["-path_sensor_model"] = "";
     input["-peg_link_name"]     = "";
     input["-rate"]              = "100";
@@ -61,8 +61,8 @@ int main(int argc,char** argv){
    Peg_world_wrapper peg_world_wrapper(nh,"peg_sensor_classifier",path_sensor_model,fixed_frame);
     wobj::WrapObject& wrapped_objects = peg_world_wrapper.get_wrapped_objects();
 
-   psm::Sensor_manager sensor_manager(nh,wrapped_objects,peg_world_wrapper.socket_one);
-                        sensor_manager.t_sensor = psm::SIMPLE_CONTACT_DIST;
+   psm::Sensor_manager sensor_manager(nh,wrapped_objects,peg_world_wrapper.socket_one,path_sensor_model);
+                        sensor_manager.t_sensor = psm::MODEL;
 
    psm::Peg_sensor_clasifier peg_sensor_classifier(nh,
                                                     fixed_frame,

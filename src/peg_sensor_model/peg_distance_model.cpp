@@ -2,12 +2,12 @@
 
 namespace psm{
 
-Peg_distance_model::Peg_distance_model(wobj::WrapObject &wrap_object):
+Peg_distance_model::Peg_distance_model(wobj::WrapObject &wrap_object,const std::string& model_path):
     wrap_object(wrap_object)
 {
-    std::string  config_file = "/home/guillaume/roscode/catkin_ws/src/wrapper/models_project/objects/meshes/plug/config/X.txt";
-    if(!model_TF.load(config_file)){
-        std::cerr<< "Plug_sensor::Plug_sensor failed to load file: " + config_file << std::endl;
+   // std::string  config_file = "/home/guillaume/roscode/catkin_ws/src/wrapper/models_project/objects/meshes/plug/config/X.txt";
+    if(!model_TF.load(model_path)){
+        std::cerr<< "Plug_sensor::Plug_sensor failed to load file: " + model_path << std::endl;
     }
     num_model_points = model_TF.n_rows;
     model_points.resize(num_model_points,3);

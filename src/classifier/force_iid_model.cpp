@@ -30,18 +30,18 @@ type(type){
 
 }
 
-void Force_iid_model::update(arma::colvec& Y,const arma::fcolvec3& force, const arma::fcolvec3& torque){
+void Force_iid_model::update(arma::colvec& Y,const arma::colvec3& force, const arma::colvec3& torque){
 
     features(contact) = gaussian_step_function_positive(arma::norm(force),0.9,1,beta);
 
-    features(up)     = gaussian_step_function_positive(force(0),limits[contact].lower,limits[contact].upper,var[contact]);   //+
+    features(up)      = gaussian_step_function_positive(force(0),limits[contact].lower,limits[contact].upper,var[contact]);   //+
 
-    features(down)   = gaussian_step_function_negative(force(0),limits[down].lower,limits[down].upper,var[down]);       //-
-    features(left)   = gaussian_step_function_negative(force(1),limits[left].lower,limits[left].upper,var[left]);       // -
+    features(down)    = gaussian_step_function_negative(force(0),limits[down].lower,limits[down].upper,var[down]);       //-
+    features(left)    = gaussian_step_function_negative(force(1),limits[left].lower,limits[left].upper,var[left]);       // -
 
-    features(right)  = gaussian_step_function_positive(force(1),limits[right].lower,limits[right].upper,var[right]);    // +
+    features(right)   = gaussian_step_function_positive(force(1),limits[right].lower,limits[right].upper,var[right]);    // +
 
-    features(push)   = gaussian_step_function_negative(force(2),limits[push].lower,limits[push].upper,var[push]);       //-
+    features(push)    = gaussian_step_function_negative(force(2),limits[push].lower,limits[push].upper,var[push]);       //-
 
     //contact,up,down,left,right,push
 

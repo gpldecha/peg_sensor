@@ -3,8 +3,8 @@
 
 namespace psm {
 
-Contact_distance_model::Contact_distance_model(wobj::WrapObject& wrap_object,obj::Socket_one& socket_one)
-    :Peg_distance_model(wrap_object),distance_features(wrap_object),socket_one(socket_one)
+Contact_distance_model::Contact_distance_model(wobj::WrapObject& wrap_object,obj::Socket_one& socket_one,const std::string model_path)
+    :Peg_distance_model(wrap_object,model_path),distance_features(wrap_object),socket_one(socket_one)
 {
 
     dir_vectors.resize(2);

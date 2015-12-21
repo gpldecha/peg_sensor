@@ -16,7 +16,7 @@ public:
 
 public:
 
-    Contact_distance_model(wobj::WrapObject& wrap_object,obj::Socket_one& socket_one);
+    Contact_distance_model(wobj::WrapObject& wrap_object,obj::Socket_one& socket_one, const std::string model_path);
 
     virtual void update(arma::colvec &Y,const arma::colvec3& pos,const arma::mat33& Rot);
 

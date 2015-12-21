@@ -29,7 +29,7 @@ public:
 
     Force_iid_model(vector_type type = FULL);
 
-     virtual void update(arma::colvec& Y,const arma::fcolvec3& force, const arma::fcolvec3& torque);
+     virtual void update(arma::colvec& Y, const arma::colvec3 &force, const arma::colvec3 &torque);
 
     void print() const;
 
@@ -68,8 +68,8 @@ private:
 
 public:
 
-    arma::fcolvec2                      features_simple;
-    arma::fcolvec6                      features;
+    arma::colvec2                      features_simple;
+    arma::colvec6                      features;
     vector_type                         type;
 
 private:

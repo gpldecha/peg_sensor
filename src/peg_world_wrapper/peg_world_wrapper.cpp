@@ -19,7 +19,6 @@ Peg_world_wrapper::Peg_world_wrapper(ros::NodeHandle &nh,
     initialise_table_wall(table_link_name);
     initialise_socket(socket_link_name,socket_link_box_name);
 
-
     world_publisher = std::shared_ptr<ww::Publisher>(new ww::Publisher( node_name + "/visualization_marker",&nh,&world_wrapper));
     world_publisher->init(fixed_frame);
     world_publisher->update_position();
@@ -28,7 +27,6 @@ Peg_world_wrapper::Peg_world_wrapper(ros::NodeHandle &nh,
 
     vis_socket = std::shared_ptr<obj::Vis_socket>(new  obj::Vis_socket(nh,world_wrapper.wrapped_objects.wsocket));
     vis_socket->initialise(25,0.01);
-
 
     /// Peg model (Cartesian points);
 
@@ -81,7 +79,7 @@ void Peg_world_wrapper::initialise_table_wall(const std::string table_link_name)
     world_wrapper.wrapped_objects.push_back_box(&wbox);
 }
 
-void Peg_world_wrapper::initialise_socket(const std::string& socket_link_name,const std::string& wall_link_name){
+void Peg_world_wrapper::initialise_socket(const std::string& socket_link_name,const std::string& socket_box_link_name){
 
     tf::StampedTransform transform;
     opti_rviz::Listener::get_tf_once(fixed_frame,socket_link_name,transform);
@@ -90,7 +88,7 @@ void Peg_world_wrapper::initialise_socket(const std::string& socket_link_name,co
     /// add a socket
     tf::Vector3 origin = transform.getOrigin();
     tf::Vector3 rpy(M_PI/2,0,M_PI/2);
-    socket_one = obj::Socket_one(socket_link_name,wall_link_name,origin,rpy,1);
+    socket_one = obj::Socket_one(socket_link_name,socket_box_link_name,origin,rpy,1);
 
     world_wrapper.wrapped_objects.push_back_box(&(socket_one.wbox));
     world_wrapper.wrapped_objects.push_back_socket(socket_one.wsocket);

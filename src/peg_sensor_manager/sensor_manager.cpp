@@ -4,60 +4,31 @@
 namespace psm{
 
 
-Sensor_manager::Sensor_manager(ros::NodeHandle& nh, wobj::WrapObject& wrapped_objects, obj::Socket_one &socket_one):
+Sensor_manager::Sensor_manager(ros::NodeHandle& nh, wobj::WrapObject& wrapped_objects, obj::Socket_one &socket_one, const std::string& model_path):
 wrapped_objects(wrapped_objects),socket_one(socket_one)
 {
-    t_sensor       = psm::NONE;
+    t_sensor       = psm::MODEL;
     service_server = nh.advertiseService("sensor_manager_cmd",&Sensor_manager::sensor_manager_callback,this);
-    initialise();
+    initialise(model_path);
 }
 
-void Sensor_manager::initialise(){
-        sptr_cdist           = Sptr_cdist( new psm::Contact_distance_model(wrapped_objects,socket_one) );
+void Sensor_manager::initialise(const std::string& model_path){
+        sptr_cdist           = Sptr_cdist( new psm::Contact_distance_model(wrapped_objects,socket_one,model_path) );
 
+        ptr_sensor_force_idd = Sptr_fii( new psm::Force_iid_model(psm::SIMPLE));
 
         //sptr_three_dist      = Sptr_three_dist( new psm::Three_pin_distance_model(wrapped_objects));
        // ptr_sensor_force_idd = Sptr_fii(new psm::Force_iid_model(SIMPLE));
 }
 
-/*
-void Sensor_manager::update(arma::colvec& Y,
-                            const arma::colvec3& pos,
-                            const arma::mat33& Rot,
-                            const arma::fcolvec3& force,
-                            const arma::fcolvec3& torque)
-{
-  //  switch(t_sensor){
-
-  //  case SIMPLE_CONTACT_DIST:
-  //  {
-        sptr_cdist->update(Y,pos,Rot);
-   /*     break;
-    }
-    case THREE_PIN_DIST:
-    {
-        sptr_three_dist->update(Y,pos,Rot);
-        break;
-    }
-    case FORCE_IID:
-    {
-    //   ptr_sensor_force_idd->update(Y,force);
-        break;
-    }
-    case NONE:
-    {
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }*/
-//}
 
 
-void Sensor_manager::update_peg(arma::colvec& Y,const arma::colvec3& pos, const arma::mat33& Rot){
+void Sensor_manager::update_peg(arma::colvec& Y,const arma::colvec3& pos, const arma::mat33& Rot){   
     sptr_cdist->update(Y,pos,Rot);
+}
+
+void Sensor_manager::update_peg(arma::colvec &Y, const arma::colvec3& force, const arma::colvec3& torque){
+    ptr_sensor_force_idd->update(Y,force,torque);
 }
 
 
@@ -68,58 +39,20 @@ void Sensor_manager::update_particles(arma::mat& Y,const arma::mat& points, cons
 
 bool Sensor_manager::sensor_manager_callback(peg_sensor::String_cmd::Request& req, peg_sensor::String_cmd::Response& res){
 
-
     std::string cmd = req.req;
-
-    if(cmd == "simple"){
-         t_sensor = SIMPLE_CONTACT_DIST;
-         res.res  = "sensor type: simple_contact_dist set!";
+    if(cmd == "model"){
+         t_sensor = MODEL;
+         res.res  = "sensor type: MODEL!";
          return true;
-    }else if(cmd == "three"){
-         t_sensor = THREE_PIN_DIST;
-         res.res  = "sensor type: three_pin_dist set!";
-         return true;
-    }else if(cmd == "force_iid"){
-         t_sensor = FORCE_IID;
-         res.res  = "sensor type: force_iid set!";
+    }else if(cmd == "ft"){
+         t_sensor = FT;
+         res.res  = "sensor type: FT!";
          return true;
     }else{
         res.res = "no such cmd: " + cmd + " !";
         return  false;
     }
-
-
 }
 
-
-/*
-void Sensor_manager::init_visualise(ros::NodeHandle& node){
-    if(sptr_dist != NULL){
-        std::cout<< "(visual marker initalised for sensor manager)" << std::endl;
-        sptr_dist->initialise_vision(node);
-    }
-}
-*/
-/*
-void Sensor_manager::visualise(){
-
-  //  std::cout<< "Sensor_manager:visualise" << std::endl;
-  //  std::cout<< "t_sensor: " << t_sensor << std::endl;
-
-    switch(t_sensor){
-    case FORCE_IID:
-    {
-        break;
-    }
-    default:
-    {
-               // std::cout<< "Sensor_manager::visualise(): THREE_PIN_DIST" << std::endl;
-        sptr_dist->visualise();
-        break;
-    }
-    }
-
-}
-*/
 
 }

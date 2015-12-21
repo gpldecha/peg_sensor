@@ -57,8 +57,8 @@ private:
 
     arma::colvec3       peg_origin;
     arma::mat33         peg_orient;
-    arma::fcolvec3      ft_force;
-    arma::fcolvec3      ft_torque;
+    arma::colvec3      ft_force;
+    arma::colvec3      ft_torque;
     arma::colvec        Y;
 
     tf::Vector3         peg_origin_tf;

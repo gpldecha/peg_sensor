@@ -17,7 +17,7 @@ class Peg_distance_model{
 
 public:
 
-    Peg_distance_model(wobj::WrapObject &wrap_object);
+    Peg_distance_model(wobj::WrapObject &wrap_object, const std::string &model_path);
 
     virtual void update(arma::colvec& Y,const arma::colvec3& pos,const arma::mat33& Rot) = 0;
 

@@ -6,7 +6,7 @@
 Peg_sensor_model::Peg_sensor_model(const std::string& path_to_peg_model,
                                    const std::string& fixed_frame,
                                    wobj::WrapObject& wrap_object)
-    :wrapped_world(wrap_object),tf_listener(fixed_frame,"peg_link")
+    :wrapped_world(wrap_object),tf_listener(fixed_frame,"lwr_peg_link")
 {
     arma::mat points;
     if(!points.load(path_to_peg_model)){

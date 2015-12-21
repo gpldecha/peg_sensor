@@ -19,7 +19,7 @@ class Base_peg_classifier{
 
 public:
 
-    virtual void update(arma::colvec& Y,const arma::fcolvec3& force, const arma::fcolvec3& torque) = 0;
+    virtual void update(arma::colvec& Y,const arma::colvec3& force, const arma::colvec3& torque) = 0;
 
 };
 

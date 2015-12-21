@@ -25,10 +25,9 @@
 
 namespace psm{
 
-typedef enum {NONE,
-              SIMPLE_CONTACT_DIST,
-              THREE_PIN_DIST,
-              FORCE_IID
+typedef enum {
+              MODEL,
+              FT,
              } type_sensor;
 
 
@@ -38,21 +37,11 @@ class Sensor_manager{
 public:
 
     typedef std::shared_ptr<psm::Contact_distance_model>    Sptr_cdist;
-    //typedef std::shared_ptr<psm::Three_pin_distance_model>  Sptr_three_dist;
     typedef std::shared_ptr<psm::Force_iid_model>           Sptr_fii;
 
 public:
 
-    Sensor_manager(ros::NodeHandle& nh,wobj::WrapObject& wrapped_objects,obj::Socket_one& socket_one);
-
-
-    // called for one point at the time
-   /* void update(arma::colvec& Y,
-                const arma::colvec3& pos,
-                const arma::mat33& Rot,
-                const arma::fcolvec3& force,
-                const arma::fcolvec3& torque);*/
-
+    Sensor_manager(ros::NodeHandle& nh,wobj::WrapObject& wrapped_objects,obj::Socket_one& socket_one,const std::string& model_path);
 
     /**
      * @brief update_peg        : computes actual sensation Y from the peg end-effector.
@@ -61,6 +50,10 @@ public:
      *                            Y is a probability distribution over a set of discrete features.
      */
     void update_peg(arma::colvec& Y,const arma::colvec3& pos, const arma::mat33& Ro);
+
+
+    void update_peg(arma::colvec &Y, const arma::colvec3& force, const arma::colvec3& torque);
+
 
     /**
      * @brief update_particles  : computes expected sensation hY for a set of hypothetical
@@ -72,15 +65,9 @@ public:
     void update_particles(arma::mat& Y,const arma::mat& points, const arma::mat33& Rot);
 
 
-  //  void init_visualise(ros::NodeHandle& node);
-
-    // void visualise();
-
-//    void print(arma::colvec& Y);
-
 private:
 
-    void initialise();
+    void initialise(const std::string& model_path);
 
     bool sensor_manager_callback(peg_sensor::String_cmd::Request& req, peg_sensor::String_cmd::Response& res);
 
@@ -93,7 +80,6 @@ public:
 private:
 
     Sptr_cdist              sptr_cdist;
-    //Sptr_three_dist         sptr_three_dist;
     Sptr_fii                ptr_sensor_force_idd;
 
     wobj::WrapObject&       wrapped_objects;
