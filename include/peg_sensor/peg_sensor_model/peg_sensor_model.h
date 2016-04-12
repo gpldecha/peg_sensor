@@ -28,25 +28,25 @@ class peg_enum_convert{
 public:
 
     static std::string contact_type_2_string(contact_type contact_t){
-    switch(contact_t){
-    case SURFACE:
-    {
-        return "SURFACE";
+        switch(contact_t){
+        case SURFACE:
+        {
+            return "SURFACE";
+        }
+        case EDGE:
+        {
+            return "EDGE";
+        }
+        case NONE:
+        {
+            return "NONE";
+        }
+        default:
+        {
+            return "NOT DEFINED";
+        }
+        }
     }
-    case EDGE:
-    {
-        return "EDGE";
-    }
-    case NONE:
-    {
-        return "NONE";
-    }
-    default:
-    {
-        return "NOT DEFINED";
-    }
-    }
-}
 
 };
 
@@ -84,44 +84,60 @@ class Peg_sensor_model{
 
 public:
 
-    Peg_sensor_model(const std::string& path_to_peg_model, const std::string &fixed_frame,
+    Peg_sensor_model(const std::string& path_to_peg_model,
+                     const std::string &fixed_frame,
+                     const std::string  &target_frame,
                      wobj::WrapObject &wrap_object);
 
     void update();
 
-    const std::vector<tf::Vector3>& get_model();
-
-    const std::vector<tf::Vector3>& get_closet_point();
-
-    const std::vector<opti_rviz::Arrow>& get_arrows();
-
-private:
+    void update_model(const tf::Vector3& T, const tf::Matrix3x3& R);
 
     void get_distance_features();
 
-    void update_model(const tf::Vector3& T, const tf::Matrix3x3& R);
+    double get_distance_surface() const;
 
+    double get_distance_edge() const;
+
+    bool is_inside_box() const;
+
+    bool is_inside_socket() const;
+
+    const std::vector<tf::Vector3>& get_model();
+
+    const arma::fcolvec3& get_closet_point(contact_type c_type);
+
+    wobj::WrapObject &get_wrapped_objects();
+
+public:
+
+    std::vector<Contact_points>     contact_info;
 
 private:
 
 
     wobj::WrapObject&               wrapped_world;
+    wobj::WBox&                     wall_box,socket_box;
+    wobj::WBox&                     box_h1,box_h2,box_h3;
+    wobj::WSocket&                  wsocket;
     std::vector<tf::Vector3>        model,model_TF;
-    std::vector<Contact_points>     contact_info;
     opti_rviz::Listener             tf_listener;
     tf::Vector3                     position;
-    tf::Matrix3x3                   orientation;
+    tf::Matrix3x3                   orientation, R_tmp;
     arma::fcolvec3                  tmp_vec3f;
     tf::Vector3                     tmp_Vec3;
 
-    std::vector<opti_rviz::Arrow>   arrows;
     std::vector<tf::Vector3>        closest_points;
 
     float                           min_distance_edge;
     float                           min_distance_surface;
     float                           current_distance_surface;
     float                           current_distance_edge;
+    bool                            isInTable, isInSocket, isIntSocketBOX;
 
 };
+
+
+
 
 #endif

@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Armadillo)
 
-set(CMAKE_CXX_FLAGS "-O2 -O3 -std=c++11 -mtune=native -fPIC -Wall")        ## Optimize
+set(CMAKE_CXX_FLAGS "-O2 -O3 -std=c++11 -mtune=native -fPIC -Wall -Wno-deprecated-declarations")        ## Optimize
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 
@@ -39,11 +39,12 @@ catkin_package(
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-set(HEADER_FILES ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/distance_features.h
-                 ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/distance_model.h
-                 ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/peg_distance_model.h
+set(HEADER_FILES # ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/distance_features.h
+                 ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/base_peg_sensor_model.h
                  ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/peg_sensor_model.h
-
+                 ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/distance_model.h
+                # ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/peg_distance_model.h
+                 ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/peg_model_visualise.h
 
                  ${INCLUDE_DIR}/peg_sensor/classifier/force_iid_model.h
                  ${INCLUDE_DIR}/peg_sensor/classifier/gmm_model.h
@@ -54,16 +55,13 @@ set(HEADER_FILES ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/distance_features.h
                  ${INCLUDE_DIR}/peg_sensor/peg_world_wrapper/peg_world_wrapper.h
 
                  ${INCLUDE_DIR}/peg_sensor/listener.h
-
-
-
                  ${INCLUDE_DIR}/peg_sensor_manager/sensor_manager.h
 )
 
 
-set(SRC_FILES    ${SRC_DIR}/peg_sensor_model/distance_features.cpp
+set(SRC_FILES  #  ${SRC_DIR}/peg_sensor_model/distance_features.cpp
                  ${SRC_DIR}/peg_sensor_model/distance_model.cpp
-                 ${SRC_DIR}/peg_sensor_model/peg_distance_model.cpp
+                # ${SRC_DIR}/peg_sensor_model/peg_distance_model.cpp
                  ${SRC_DIR}/peg_sensor_model/peg_sensor_model.cpp
 
 
@@ -71,15 +69,10 @@ set(SRC_FILES    ${SRC_DIR}/peg_sensor_model/distance_features.cpp
                  ${SRC_DIR}/classifier/gmm_model.cpp
          #        ${SRC_DIR}/classifier/peg_classifier_publisher.cpp
                  ${SRC_DIR}/classifier/peg_classifier.cpp
-
                  ${SRC_DIR}/peg_world_wrapper/peg_world_wrapper.cpp
-
-
                  ${SRC_DIR}/listener.cpp
-
-
-
                  ${SRC_DIR}/peg_sensor_manager/sensor_manager.cpp
+                 ${SRC_DIR}/peg_sensor_model/peg_model_visualise.cpp
 )
 
 

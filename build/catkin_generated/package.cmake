@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "peg_sensor")
+set(peg_sensor_MAINTAINER "guillaume <guillaume@todo.todo>")
+set(peg_sensor_DEPRECATED "")
+set(peg_sensor_VERSION "0.0.0")
+set(peg_sensor_BUILD_DEPENDS "roscpp" "optitrack_rviz" "netft_rdt_driver" "std_msgs" "world_wrapper" "wrap_object" "statistics_ml" "objects" "message_runtime" "geometry_msgs" "optitrack_rviz")
+set(peg_sensor_RUN_DEPENDS "roscpp" "optitrack_rviz" "netft_rdt_driver" "std_msgs" "world_wrapper" "wrap_object" "statistics_ml" "objects" "message_runtime" "geometry_msgs")
+set(peg_sensor_BUILDTOOL_DEPENDS "catkin")

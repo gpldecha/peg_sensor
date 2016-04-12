@@ -5,18 +5,19 @@ namespace psm{
 Peg_distance_model::Peg_distance_model(wobj::WrapObject &wrap_object,const std::string& model_path):
     wrap_object(wrap_object)
 {
-   // std::string  config_file = "/home/guillaume/roscode/catkin_ws/src/wrapper/models_project/objects/meshes/plug/config/X.txt";
     if(!model_TF.load(model_path)){
         std::cerr<< "Plug_sensor::Plug_sensor failed to load file: " + model_path << std::endl;
     }
     num_model_points = model_TF.n_rows;
-    model_points.resize(num_model_points,3);
+    model_points.zeros(num_model_points,3);
     model_TF.print("model_TF");
 
     b_visualise = false;
 }
 
 void Peg_distance_model::update_model(const arma::colvec3& T, const arma::mat33& R){
+
+    model_points.zeros();
 
     for(std::size_t i = 0; i < num_model_points;i++)
     {

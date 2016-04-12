@@ -35,13 +35,11 @@ public:
                       const std::string& node_name,
                       const std::string& path_sensor_model,
                       const std::string& fixed_frame,
+                      const std::string& peg_link_name,
                       const std::string table_link_name      = "link_wall",
                       const std::string socket_link_name     = "link_socket",
                       const std::string socket_link_box_name = "wbox_socket");
 
-  //  void set_table_socket_origin(const arma::fcolvec3& origin,const arma::fcolvec3& rpy);
-
- //   void transform_table_socket(const arma::fcolvec3& origin);
 
     ww::World_wrapper& get_world_wrapper();
 
@@ -67,7 +65,9 @@ private:
 
 public:
 
-    obj::Socket_one    socket_one;
+    obj::Socket_one                            socket_one;
+    std::shared_ptr<Peg_sensor_model>          peg_sensor_model;
+
 
 private:
 
@@ -84,9 +84,13 @@ private:
 
          std::shared_ptr<ww::Publisher>             world_publisher;
          std::shared_ptr<obj::Vis_socket>           vis_socket;
-         std::shared_ptr<Peg_sensor_model>          peg_sensor_model;
          std::shared_ptr<opti_rviz::Vis_points>     vis_points;
-         std::shared_ptr<opti_rviz::Vis_vectors>    vis_vectors;
+       //  std::shared_ptr<opti_rviz::Vis_vectors>    vis_vectors;
+
+         boost::shared_ptr<opti_rviz::Vis_points>    vis_proj_sur,vis_proj_edge;
+         std::vector<tf::Vector3>                    v_surf,v_edge,v_corner;
+
+
 
 
 

@@ -3,53 +3,54 @@
 
 namespace psm {
 
-Contact_distance_model::Contact_distance_model(wobj::WrapObject& wrap_object,obj::Socket_one& socket_one,const std::string model_path)
-    :Peg_distance_model(wrap_object,model_path),distance_features(wrap_object),socket_one(socket_one)
-{
-
-    dir_vectors.resize(2);
-    colors.resize(2);
-    colors[0]   = tf::Vector3(1,0,0);
-    colors[1]   = tf::Vector3(0,0,1);
-
-    socket_box = wrap_object.wboxes[1];
-    proj_points.resize(2,3);
-
-    double sd = 0.02;
-    min_half_one_div_var = -0.5 * 1 / (sd * sd);
-
+Contact_distance_model::Contact_distance_model(Peg_sensor_model &peg_sensor_model)
+    :peg_sensor_model(peg_sensor_model){
 }
 
 void Contact_distance_model::update(arma::colvec &Y,const arma::colvec3& pos,const arma::mat33& Rot){
-  //  std::cout<< " start Contact_distance_model::update" << std::endl;
+    //  ROS_INFO("Contact_distance_model::update this should not be called");
+    //  std::cout<< " start Contact_distance_model::update" << std::endl;
     Y.resize(3);
 
-    Peg_distance_model::update_model(pos,Rot);
-    get_distances();
+    tf::Matrix3x3 R_tmp;
+    tf::Vector3   T_tmp;
+    opti_rviz::type_conv::mat2tf(Rot,R_tmp);
+    opti_rviz::type_conv::vec2tf(pos,T_tmp);
 
-    Y(C_SURF)   = min_distance_surface;
-    Y(C_EDGE)   = min_distance_edge;
-    Y(C_SOCKET) = isInSocket; //is_inside_socket_box(pos);
+    peg_sensor_model.update_model(T_tmp,R_tmp);
+    peg_sensor_model.get_distance_features();
+
+    Y(C_SURF)   = peg_sensor_model.get_distance_surface();
+    Y(C_EDGE)   = peg_sensor_model.get_distance_edge();
+    Y(C_SOCKET) = peg_sensor_model.is_inside_socket();
+    if(peg_sensor_model.is_inside_box()){
+        Y(C_SURF) = -1;
+    }
 
 }
 
 void Contact_distance_model::update(arma::mat& hY,const arma::mat& points,const arma::mat33& Rot){
     assert(hY.n_rows == points.n_rows);
     Yone.resize(3);
+
+    tf::Matrix3x3 R_tmp;
+    tf::Vector3  T_tmp;
+    opti_rviz::type_conv::mat2tf(Rot,R_tmp);
+
     for(std::size_t i = 0; i < points.n_rows;i++){
+        opti_rviz::type_conv::vec2tf(points.row(i).st(),T_tmp);
+        peg_sensor_model.update_model(T_tmp,R_tmp);
+        peg_sensor_model.get_distance_features();
 
-        Peg_distance_model::update_model(points.row(i).st(),Rot);
-        get_distances();
+        Yone(C_SURF)   = peg_sensor_model.get_distance_surface();
+        Yone(C_EDGE)   = peg_sensor_model.get_distance_edge();
+        Yone(C_SOCKET) = peg_sensor_model.is_inside_socket();
 
-
-        Yone(C_SURF)   = min_distance_surface;
-        Yone(C_EDGE)   = min_distance_edge;
-        Yone(C_SOCKET) = isInSocket;
-
-        if(isInTable){
-            Yone(C_SURF) = 1;
+        // only if point is inside a box and not inside the socket boxes
+        if(peg_sensor_model.is_inside_box()){
+            //    std::cout<< i << " is inside" << std::endl;
+            Yone(C_SURF) = -1;
         }
-
         hY.row(i) = Yone.st();
     }
 
@@ -57,25 +58,24 @@ void Contact_distance_model::update(arma::mat& hY,const arma::mat& points,const 
 
 
 void Contact_distance_model::get_distance_single_point(arma::fcolvec3 &x){
-    distance_features.compute_surface_edge_vector(x);
+    /*   distance_features.compute_surface_edge_vector(x);
 
     direction_surf = distance_features.point_surface - x;
     min_distance_surface = arma::norm(direction_surf);
 
     direction_edge = distance_features.point_edge - x;
-    min_distance_edge = arma::norm(direction_edge);
+    min_distance_edge = arma::norm(direction_edge);*/
 
 }
 
 void Contact_distance_model::get_distances(){
-    min_distance_surface = std::numeric_limits<float>::max();
+
+    /*  min_distance_surface = std::numeric_limits<float>::max();
     min_distance_edge    = std::numeric_limits<float>::max();
     std::size_t index_closet_point_s = -1;
     std::size_t index_closet_point_e = -1;
 
     isInSocket = true;
-
-
 
     for(std::size_t i = 0; i < 3;i++)
     {
@@ -119,38 +119,69 @@ void Contact_distance_model::get_distances(){
 
         opti_rviz::type_conv::vec2tf(model_points.row(index_closet_point_e).st(),dir_vectors[C_EDGE].origin);
         opti_rviz::type_conv::vec2tf(direction_edge,dir_vectors[C_EDGE].direction);
-    }
+    }*/
 }
 
-void Contact_distance_model::initialise_vision(ros::NodeHandle& node){
-    Peg_distance_model::initialise_vision(node);
-    ptr_vis_vectors = std::shared_ptr<opti_rviz::Vis_vectors>( new opti_rviz::Vis_vectors(node,"contact_model"));
-    ptr_vis_vectors->scale = 0.002;
-    ptr_vis_vectors->set_color(colors);
-    ptr_vis_vectors->initialise("world",dir_vectors);
+void Contact_distance_model::initialise_vision(ros::NodeHandle& node){}
+
+void Contact_distance_model::visualise(){}
 
 
-    ptr_proj_points = std::shared_ptr<opti_rviz::Vis_points>( new opti_rviz::Vis_points(node,"projected_points") );
-    ptr_proj_points->r = 1;
-    ptr_proj_points->scale = 0.005;
-    ptr_proj_points->initialise("world",proj_points);
+Fast_contact_distance_model::Fast_contact_distance_model(const std::string& path_to_peg_model,const std::string& fixed_frame){
+    {
+        arma::mat points;
+        if(!points.load(path_to_peg_model)){
+            std::cerr<< "Peg_sensor_vis::Peg_sensor_vis failed to load file: " + path_to_peg_model << std::endl;
+        }else{
 
-}
+            model.resize(points.n_rows);
+            model_TF.resize(points.n_rows);
+            for(std::size_t r = 0; r < points.n_rows;r++){
+                model_TF[r].setValue(points(r,0),points(r,1),points(r,2));
+            }
 
-void Contact_distance_model::visualise(){
-    if(b_visualise){
-        Peg_distance_model::visualise();
-        if(ptr_vis_vectors != NULL){
-            ptr_vis_vectors->update(dir_vectors);
-            ptr_vis_vectors->publish();
-
-            ptr_proj_points->update(proj_points);
-            ptr_proj_points->publish();
         }
+        R_tmp.setRPY(0,-M_PI/2,M_PI);
     }
 }
 
-// -----------------------------------------------------------------------------------------------------------------------------------
+void Fast_contact_distance_model::update(arma::colvec &Y,const arma::colvec3& pos,const arma::mat33& Rot){
+
+
+
+
+
+}
+
+/**
+ * @brief update    : compute the expected sensation given positions and known orientation
+ * @param hY        : filled in expected sensed values (what is returned)
+ * @param points    : particles, set of possible positions of the end-effector
+ * @param Rot       : known orientation of the particle
+ */
+void Fast_contact_distance_model::update(arma::mat& hY, const arma::mat& points, const arma::mat33& Rot){
+
+        for(std::size_t i = 0; i < points.n_rows;i++){
+
+
+                // if in inside the box or not
+
+                //  distance to edge
+
+                //  distance to corner
+
+
+        }
+
+}
+
+void Fast_contact_distance_model::initialise_vision(ros::NodeHandle& node){
+
+}
+
+void Fast_contact_distance_model::visualise(){
+
+}
 
 
 

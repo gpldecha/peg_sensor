@@ -4,16 +4,11 @@
 ///
 /// \brief The Sensor_manager class
 /// Managers a set of senor functions which populates a multivariate sensor vector Y
-///
-/// 1) Virtual sensor: computes probability of contact/no conact based on computing distance
-///                    from the plug model to objects in the environement
-///
-/// 2) FT sensor: computes the probability of contact/no contact based on force measurements
-///
 
-#include "peg_sensor/peg_sensor_model/peg_distance_model.h"
-#include "peg_sensor/peg_sensor_model/distance_model.h"
-#include "peg_sensor/classifier/force_iid_model.h"
+
+#include <ros/ros.h>
+#include <map>
+#include <peg_sensor/peg_sensor_model/base_peg_sensor_model.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <peg_sensor/String_cmd.h>
 
@@ -25,23 +20,16 @@
 
 namespace psm{
 
-typedef enum {
-              MODEL,
-              FT,
-             } type_sensor;
-
-
-
 class Sensor_manager{
 
 public:
 
-    typedef std::shared_ptr<psm::Contact_distance_model>    Sptr_cdist;
-    typedef std::shared_ptr<psm::Force_iid_model>           Sptr_fii;
+    Sensor_manager(ros::NodeHandle& nh);
 
-public:
+    void add(const std::string name, Base_peg_sensor_model* peg_sensor_model);
 
-    Sensor_manager(ros::NodeHandle& nh,wobj::WrapObject& wrapped_objects,obj::Socket_one& socket_one,const std::string& model_path);
+    bool select_model(const std::string& name);
+
 
     /**
      * @brief update_peg        : computes actual sensation Y from the peg end-effector.
@@ -52,9 +40,6 @@ public:
     void update_peg(arma::colvec& Y,const arma::colvec3& pos, const arma::mat33& Ro);
 
 
-    void update_peg(arma::colvec &Y, const arma::colvec3& force, const arma::colvec3& torque);
-
-
     /**
      * @brief update_particles  : computes expected sensation hY for a set of hypothetical
      *                            positions of the end-effector. This function would tipically
@@ -62,33 +47,18 @@ public:
      *                            sensations, hY, which are then used to compute the likelihood
      *                            of each particle.
      */
-    void update_particles(arma::mat& Y,const arma::mat& points, const arma::mat33& Rot);
-
+    void compute_hY(arma::mat& Y,const arma::mat& points, const arma::mat33& Rot);
 
 private:
-
-    void initialise(const std::string& model_path);
 
     bool sensor_manager_callback(peg_sensor::String_cmd::Request& req, peg_sensor::String_cmd::Response& res);
 
-
-public:
-
-    type_sensor             t_sensor;
-
-
 private:
 
-    Sptr_cdist              sptr_cdist;
-    Sptr_fii                ptr_sensor_force_idd;
-
-    wobj::WrapObject&       wrapped_objects;
-    obj::Socket_one&        socket_one;
-
+    std::map<std::string,Base_peg_sensor_model*> peg_model_map;
+    std::map<std::string,Base_peg_sensor_model*>::iterator it;
 
     ros::ServiceServer      service_server;
-
-
 
 };
 

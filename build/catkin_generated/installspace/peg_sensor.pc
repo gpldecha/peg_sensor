@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: peg_sensor
+Description: Description of peg_sensor
+Version: 0.0.0
+Cflags: -I/usr/local/include
+Libs: -L/usr/local/lib -lpeg_sensor
+Requires: roscpp world_wrapper wrap_object statistics_ml objects message_runtime geometry_msgs

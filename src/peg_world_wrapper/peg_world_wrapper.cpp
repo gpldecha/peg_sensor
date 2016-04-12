@@ -1,10 +1,12 @@
 #include "peg_sensor/peg_world_wrapper/peg_world_wrapper.h"
+#include "optitrack_rviz/type_conversion.h"
 
 
 Peg_world_wrapper::Peg_world_wrapper(ros::NodeHandle &nh,
                                      const std::string& node_name,
                                      const std::string& path_sensor_model,
                                      const std::string& fixed_frame,
+                                     const std::string &peg_link_name,
                                      const std::string table_link_name,
                                      const std::string socket_link_name,
                                      const std::string socket_link_box_name)
@@ -23,45 +25,55 @@ Peg_world_wrapper::Peg_world_wrapper(ros::NodeHandle &nh,
     world_publisher->init(fixed_frame);
     world_publisher->update_position();
 
-   /// Visualise socket
+
+    v_surf.resize(1);
+    v_edge.resize(1);
+    v_corner.resize(1);
+
+    vis_proj_sur.reset(new opti_rviz::Vis_points(nh,"proj_surf"));
+    vis_proj_sur->scale = 0.005;
+    vis_proj_sur->alpha = 1;
+    vis_proj_sur->r     = 1;
+    vis_proj_sur->g     = 0;
+    vis_proj_sur->b     = 0;
+    vis_proj_sur->initialise(fixed_frame,v_surf);
+
+
+
+    vis_proj_edge.reset(new opti_rviz::Vis_points(nh,"proj_edge"));
+    vis_proj_edge->scale = 0.005;
+    vis_proj_edge->alpha = 1;
+    vis_proj_edge->r     = 0;
+    vis_proj_edge->g     = 0;
+    vis_proj_edge->b     = 1;
+    vis_proj_edge->initialise(fixed_frame,v_edge);
+
+
+    /// Visualise socket
 
     vis_socket = std::shared_ptr<obj::Vis_socket>(new  obj::Vis_socket(nh,world_wrapper.wrapped_objects.wsocket));
-    vis_socket->initialise(25,0.01);
+    vis_socket->initialise(25,"world",0.001);
 
-    /// Peg model (Cartesian points);
 
-     peg_sensor_model = std::shared_ptr<Peg_sensor_model>(new Peg_sensor_model(path_sensor_model,fixed_frame,world_wrapper.wrapped_objects));
+     peg_sensor_model = std::shared_ptr<Peg_sensor_model>(new Peg_sensor_model(path_sensor_model,fixed_frame,peg_link_name,world_wrapper.wrapped_objects));
+
+     /// Peg model (Cartesian points);
 
 
     vis_points = std::shared_ptr<opti_rviz::Vis_points>( new  opti_rviz::Vis_points(nh,"peg_model"));
     vis_points->scale = 0.005;
     vis_points->initialise(fixed_frame,peg_sensor_model->get_model());
 
-    vis_vectors = std::shared_ptr<opti_rviz::Vis_vectors>(new opti_rviz::Vis_vectors(nh,"closest_features") );
+  /*  vis_vectors = std::shared_ptr<opti_rviz::Vis_vectors>(new opti_rviz::Vis_vectors(nh,"closest_features_arrow") );
     vis_vectors->scale = 0.005;
     std::vector<tf::Vector3> colors(2);
     colors[0] = tf::Vector3(1,0,0);
     colors[1] = tf::Vector3(0,0,1);
     vis_vectors->set_color(colors);
-    vis_vectors->initialise(fixed_frame,peg_sensor_model->get_arrows());
+    vis_vectors->initialise(fixed_frame,peg_sensor_model->get_arrows());*/
 
 }
 
-/*
-void Peg_world_wrapper::set_table_socket_origin(const arma::fcolvec3& origin, const arma::fcolvec3 &rpy){
-
-    world_wrapper.set_origin_orientation(table_link_name,origin,rpy);
-
-}*/
-/*
-void Peg_world_wrapper::transform_table_socket(const arma::fcolvec3& origin){
-   wobj::WBox& table_wall = world_wrapper.get_wbox(0);
-   table_wall.transform(origin);
-
-   wobj::WBox& socket_box = world_wrapper.get_wbox(1);
-   socket_box.transform(origin);
-}
-*/
 void Peg_world_wrapper::initialise_table_wall(const std::string table_link_name){
 
     tf::StampedTransform transform;
@@ -71,6 +83,7 @@ void Peg_world_wrapper::initialise_table_wall(const std::string table_link_name)
 
     geo::fCVec3 origin       = {{(float)wall_origin.x(),(float)wall_origin.y(),(float)wall_origin.z()}};//{{0,0,-0.02/2}};
     float      dx            = 0.1;
+  //  origin(0)                = origin(0) - 0.005; // half centimeter
     origin(0)                = origin(0)-dx/2;
     geo::fCVec3 dim          = {{static_cast<float>(0.02+dx),0.8,0.4}};
     geo::fCVec3 orientation  = {{0,0,0}};
@@ -90,13 +103,14 @@ void Peg_world_wrapper::initialise_socket(const std::string& socket_link_name,co
     tf::Vector3 rpy(M_PI/2,0,M_PI/2);
     socket_one = obj::Socket_one(socket_link_name,socket_box_link_name,origin,rpy,1);
 
+    std::cout<< "Initialise_socket" << std::endl;
+
     world_wrapper.wrapped_objects.push_back_box(&(socket_one.wbox));
     world_wrapper.wrapped_objects.push_back_socket(socket_one.wsocket);
 
     world_wrapper.wrapped_objects.push_back_box(&(socket_one.hole_wboxes[0]));
     world_wrapper.wrapped_objects.push_back_box(&(socket_one.hole_wboxes[1]));
     world_wrapper.wrapped_objects.push_back_box(&(socket_one.hole_wboxes[2]));
-
 }
 
 
@@ -105,14 +119,31 @@ void Peg_world_wrapper::update(){
     peg_sensor_model->update();
 
     vis_points->update(peg_sensor_model->get_model());
-    vis_vectors->update(peg_sensor_model->get_arrows());
+
+    opti_rviz::type_conv::vec2tf(peg_sensor_model->get_closet_point(SURFACE),v_surf[0]);
+    opti_rviz::type_conv::vec2tf(peg_sensor_model->get_closet_point(EDGE),v_edge[0]);
+
+
+    vis_proj_sur->update(v_surf);
+    vis_proj_sur->publish();
+
+    vis_proj_edge->update(v_edge);
+    vis_proj_edge->publish();
+
+
+    //const std::vector<opti_rviz::Arrow>& arrows = peg_sensor_model->get_arrows();
+    //std::cout<< "peg_world_wrapper update" << std::endl;
+    //arrows[0].print();
+
+
+    //vis_vectors->update(arrows);
 
     vis_points->publish();
-    vis_vectors->publish();
+    //vis_vectors->publish();
 
     vis_socket->publish();
 
-
+   //std::cout<< "update world publisher" << std::endl;
     world_publisher->update_position();
     world_publisher->publish();
 

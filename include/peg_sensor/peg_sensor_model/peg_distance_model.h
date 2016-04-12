@@ -5,7 +5,7 @@
 #include <visualise/vis_points.h>
 
 #include "wrapobject.h"
-#include "peg_sensor/peg_sensor_model/distance_features.h"
+#include "peg_sensor/peg_sensor_model/base_peg_sensor_model.h"
 
 
 #include <armadillo>
@@ -13,7 +13,7 @@
 
 namespace psm{
 
-class Peg_distance_model{
+class Peg_distance_model : public Base_peg_sensor_model{
 
 public:
 
@@ -44,29 +44,6 @@ protected:
     bool                                        b_visualise;
 
 };
-
-/*
-
-class Plug_contact_model{
-
-public:
-
-    Plug_contact_model(wobj::WrapObject &wrap_object);
-
-    void update(arma::colvec3& pos,const arma::mat33& Rot);
-
-private:
-
-    wobj::WrapObject&   wrap_object;
-    arma::mat           model_TF;
-    arma::colvec3       plug_point;
-    std::size_t         num_model_points;
-    arma::fmat          model_points;
-    arma::fcolvec3      point_surface;
-    arma::fcolvec3      correction;
-
-};
-*/
 
 }
 

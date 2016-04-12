@@ -1,14 +1,16 @@
 #ifndef DISTANCE_MODEL_H_
 #define DISTANCE_MODEL_H_
 
-#include "peg_sensor/peg_sensor_model/peg_distance_model.h"
+
 #include "wrapobject.h"
 #include <visualise/vis_vector.h>
 #include <objects/socket_one.h>
+#include "peg_sensor/peg_sensor_model/peg_sensor_model.h"
+#include "peg_sensor/peg_sensor_model/base_peg_sensor_model.h"
 
 namespace psm{
 
-class Contact_distance_model : public Peg_distance_model{
+class Contact_distance_model : public Base_peg_sensor_model {
 
 public:
 
@@ -16,10 +18,16 @@ public:
 
 public:
 
-    Contact_distance_model(wobj::WrapObject& wrap_object,obj::Socket_one& socket_one, const std::string model_path);
+    Contact_distance_model(Peg_sensor_model& peg_sensor_model);
 
     virtual void update(arma::colvec &Y,const arma::colvec3& pos,const arma::mat33& Rot);
 
+    /**
+     * @brief update    : compute the expected sensation given positions and known orientation
+     * @param hY        : filled in expected sensed values (what is returned)
+     * @param points    : particles, set of possible positions of the end-effector
+     * @param Rot       : known orientation of the particle
+     */
     virtual void update(arma::mat& hY, const arma::mat& points, const arma::mat33& Rot);
 
     virtual void initialise_vision(ros::NodeHandle& node);
@@ -32,87 +40,54 @@ protected:
 
     void get_distance_single_point(arma::fcolvec3 &x);
 
-    inline bool is_inside_socket_box(const arma::fcolvec3 &pos){
-        return  socket_one.hole_wboxes[0].is_inside(pos) || socket_one.hole_wboxes[1].is_inside(pos) || socket_one.hole_wboxes[2].is_inside(pos);
+    inline double gaussian_function(const double x, const double var=1.0){
+        return exp(-(1.0 / (2.0 * var)) * (x * x));
     }
-
-
 
 private:
 
     double                              min_half_one_div_var;
+    double                              dist_variance;
 
 protected:
 
-    Distance_features                  distance_features;
-
-    std::vector<opti_rviz::Arrow>           dir_vectors;
-    std::vector<tf::Vector3>                colors;
-    std::shared_ptr<opti_rviz::Vis_vectors> ptr_vis_vectors;
-    std::shared_ptr<opti_rviz::Vis_points>  ptr_proj_points;
-
-    arma::fmat                              proj_points;
-    wobj::WBox*                             socket_box;
-    obj::Socket_one&                        socket_one;
+    Peg_sensor_model                    &peg_sensor_model;
 
     arma::fcolvec3                      tmp;
     arma::colvec                        Yone;
-
-    float                               min_distance_edge;
-    float                               min_distance_surface;
-    float                               current_distance_surface;
-    float                               current_distance_edge;
-    bool                                isInSocket;
-    bool                                isInTable;
-
-
-    std::size_t                         index_closest_model_surf;
-    std::size_t                         index_closest_model_edge;
-
-    arma::fcolvec3                      direction_surf;
-    arma::fcolvec3                      direction_edge;
-
-    arma::fcolvec3                      closet_point_proj_surf;
-    arma::fcolvec3                      closest_model_surf;
-
-    arma::fcolvec3                      closet_point_proj_edge;
-    arma::fcolvec3                      closet_model_edge;
-
-
 };
 
 
-/**
- *  === The Insertion_sensor class ===
- *
- *  Given a Socket model, peg model and the origin and orientation of the peg
- *  computes a probability the peg being connected or not to the socket
- *
- *
-* */
-
-/*
-class Insertion_sensor{
+class Fast_contact_distance_model : public Base_peg_sensor_model{
 
 public:
 
-    Insertion_sensor(wobj::WrapObject& wrap_object);
+    Fast_contact_distance_model(const std::string& path_to_peg_model,const std::string& fixed_frame);
 
-    void update(arma::colvec &Y,const arma::colvec3& pos,const arma::mat33& Rot);
+    virtual void update(arma::colvec &Y,const arma::colvec3& pos,const arma::mat33& Rot);
 
-     void update(arma::mat& hY, const arma::mat& points, const arma::mat33& Rot);
+    /**
+     * @brief update    : compute the expected sensation given positions and known orientation
+     * @param hY        : filled in expected sensed values (what is returned)
+     * @param points    : particles, set of possible positions of the end-effector
+     * @param Rot       : known orientation of the particle
+     */
+    virtual void update(arma::mat& hY, const arma::mat& points, const arma::mat33& Rot);
+
+    virtual void initialise_vision(ros::NodeHandle& node);
+
+    virtual void visualise();
+
 
 private:
 
-
-
-private:
-
-    wobj::WrapObject& wrap_object;
-    wobj::WBox* socket_box;
-    geo::fCVec3 tmp;
+    std::vector<tf::Vector3>        model,model_TF;
+    std::vector<Contact_points>     contact_info;
+    tf::Vector3                     position;
+    tf::Matrix3x3                   orientation, R_tmp;
+    arma::fcolvec3                  tmp_vec3f;
+    tf::Vector3                     tmp_Vec3;
 };
-*/
 
 }
 
