@@ -15,6 +15,8 @@ public:
 
     void visualise(const arma::fcolvec3& surf,const arma::fcolvec3& model_suf,const arma::fcolvec3 edge,const arma::fcolvec3& model_edge);
 
+    void visualise(const arma::fcolvec3& direction, const arma::fcolvec3& pos);
+
 private:
 
     opti_rviz::Vis_vectors              vis_vectors;

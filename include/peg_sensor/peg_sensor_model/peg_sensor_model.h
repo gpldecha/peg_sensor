@@ -113,6 +113,13 @@ public:
 
     std::vector<Contact_points>     contact_info;
 
+    bool                            isInSock_Top_Edge, isInSock_Bot_Edge,isInSock_Left_Edge,isInSock_Right_Edge;
+    float                           min_distance_ring;
+    float                           min_distance_s_hole;
+    geo::fCVec3                     edge_dir;
+    geo::fCVec3                     surf_dir;
+    geo::fCVec3                     plat_dir;
+
 private:
 
 
@@ -120,9 +127,17 @@ private:
     wobj::WBox&                     wall_box,socket_box;
     wobj::WBox&                     box_h1,box_h2,box_h3;
     wobj::WSocket&                  wsocket;
+
+    wobj::WBox&                     socket_top_edge;
+    wobj::WBox&                     socket_bottom_edge;
+    wobj::WBox&                     socket_left_edge;
+    wobj::WBox&                     socket_right_edge;
+
+
     std::vector<tf::Vector3>        model,model_TF;
     opti_rviz::Listener             tf_listener;
     tf::Vector3                     position;
+    arma::fcolvec3                   arma_position;
     tf::Matrix3x3                   orientation, R_tmp;
     arma::fcolvec3                  tmp_vec3f;
     tf::Vector3                     tmp_Vec3;
@@ -133,7 +148,10 @@ private:
     float                           min_distance_surface;
     float                           current_distance_surface;
     float                           current_distance_edge;
+    float                           dist_edge_ring;
+
     bool                            isInTable, isInSocket, isIntSocketBOX;
+
 
 };
 

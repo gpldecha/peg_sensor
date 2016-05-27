@@ -2,6 +2,8 @@
 #include <armadillo>
 #include <limits>
 #include <cmath>
+#include <optitrack_rviz/type_conversion.h>
+#include <optitrack_rviz/debug.h>
 
 Peg_sensor_model::Peg_sensor_model(const std::string& path_to_peg_model,
                                    const std::string& fixed_frame,
@@ -9,13 +11,18 @@ Peg_sensor_model::Peg_sensor_model(const std::string& path_to_peg_model,
                                    wobj::WrapObject& wrap_object)
     :wrapped_world(wrap_object),
       tf_listener(fixed_frame,target_frame),
-      wall_box(wrapped_world.get_wbox("link_wall")),
-      socket_box(wrapped_world.get_wbox("wbox_socket")),
-      box_h1(wrapped_world.get_wbox("box_hole_1") ),
-      box_h2(wrapped_world.get_wbox("box_hole_2") ),
-      box_h3(wrapped_world.get_wbox("box_hole_3") ),
+      wall_box(             wrapped_world.get_wbox("link_wall")             ),
+      socket_box(           wrapped_world.get_wbox("wbox_socket")           ),
+      box_h1(               wrapped_world.get_wbox("box_hole_1")            ),
+      box_h2(               wrapped_world.get_wbox("box_hole_2")            ),
+      box_h3(               wrapped_world.get_wbox("box_hole_3")            ),
+      socket_top_edge(      wrapped_world.get_wbox("socket_top_edge")       ),
+      socket_bottom_edge(   wrapped_world.get_wbox("socket_bottom_edge")    ),
+      socket_left_edge(     wrapped_world.get_wbox("socket_left_edge")      ),
+      socket_right_edge(    wrapped_world.get_wbox("socket_right_edge")     ),
       wsocket(wrapped_world.wsocket)
 {
+
     arma::mat points;
     if(!points.load(path_to_peg_model)){
         std::cerr<< "Peg_sensor_vis::Peg_sensor_vis failed to load file: " + path_to_peg_model << std::endl;
@@ -45,12 +52,21 @@ void Peg_sensor_model::get_distance_features(){
 
     min_distance_edge       = std::numeric_limits<float>::max();
     min_distance_surface    = std::numeric_limits<float>::max();
+    min_distance_ring       = std::numeric_limits<float>::max();
+    min_distance_s_hole     = std::numeric_limits<float>::max();
+
     isInTable               = false;
     isInSocket              = true;
     isIntSocketBOX          = false;
 
+    isInSock_Top_Edge       = false;
+    isInSock_Bot_Edge       = false;
+    isInSock_Right_Edge     = false;
+    isInSock_Left_Edge      = false;
+
     const wobj::distances& w_dist = wall_box.get_distances();
     const wobj::distances& s_dist = socket_box.get_distances();
+
 
 
     std::size_t i = 0;
@@ -113,11 +129,38 @@ void Peg_sensor_model::get_distance_features(){
         }
 
 
+        wsocket.dist_edge_ring;
 
         contact_info[SURFACE].distance         = min_distance_surface;
         contact_info[EDGE].distance            = min_distance_edge;
 
         isInSocket = isInSocket && (box_h1.is_inside() || box_h2.is_inside() || box_h3.is_inside());
+
+
+        /// check if point is inside a socket edge bounding box
+        if(socket_top_edge.is_inside()){
+            isInSock_Top_Edge = true;
+        }
+        if(socket_bottom_edge.is_inside()){
+            isInSock_Bot_Edge = true;
+        }
+        if(socket_right_edge.is_inside()){
+            isInSock_Right_Edge = true;
+        }
+        if(socket_left_edge.is_inside()){
+            isInSock_Left_Edge = true;
+        }
+
+
+         if( arma::norm(tmp_vec3f - wsocket.plate_edge_proj) < min_distance_ring)
+         {
+            min_distance_ring = arma::norm(tmp_vec3f - wsocket.plate.K);
+         }
+
+         if(wsocket.dist_edge_hole < min_distance_s_hole)
+         {
+             min_distance_s_hole = wsocket.dist_edge_hole;
+         }
 
         if(socket_box.is_inside()){
             isIntSocketBOX=true;
@@ -126,6 +169,21 @@ void Peg_sensor_model::get_distance_features(){
             isInTable=true;
         }
     }
+
+
+    socket_top_edge.distance_to_features(arma_position);
+    socket_bottom_edge.distance_to_features(arma_position);
+    socket_left_edge.distance_to_features(arma_position);
+    socket_right_edge.distance_to_features(arma_position);
+
+    wsocket.distance_to_features(arma_position);
+
+    plat_dir = wsocket.plate.C - wsocket.get_surface_projection();
+
+
+
+    opti_rviz::type_conv::tf2vec(model[contact_info[EDGE].index],tmp_vec3f);
+    edge_dir = (contact_info[EDGE].closest_point -  tmp_vec3f);
 
     if(isInSocket){
         isInTable      = false;
@@ -155,6 +213,9 @@ wobj::WrapObject& Peg_sensor_model::get_wrapped_objects(){
 }
 
 void Peg_sensor_model::update_model(const tf::Vector3& T,const tf::Matrix3x3& R){
+
+    opti_rviz::type_conv::tf2vec(T,arma_position);
+
     for(std::size_t i = 0; i < model.size();i++){
         // transform the peg model to the frame of reference of peg_link
         model[i]  = (R * R_tmp * model_TF[i]) + T;

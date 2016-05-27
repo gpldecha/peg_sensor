@@ -2,7 +2,7 @@
 #define PEG_SENSOR_LISTENER_H_
 
 #include <ros/ros.h>
-#include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <armadillo>
 
 namespace psm{
@@ -16,7 +16,7 @@ public:
 
 private:
 
-    void callback(const std_msgs::Float32MultiArrayConstPtr& msg);
+    void callback(const std_msgs::Float64MultiArrayConstPtr &msg);
 
 public:
 

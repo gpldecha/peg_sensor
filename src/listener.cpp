@@ -11,7 +11,7 @@ Peg_sensor_listener::Peg_sensor_listener(ros::NodeHandle &node, const std::strin
 }
 
 
-void Peg_sensor_listener::callback(const std_msgs::Float32MultiArrayConstPtr& msg){
+void Peg_sensor_listener::callback(const std_msgs::Float64MultiArrayConstPtr& msg){
  //   assert(size == msg->data.size());
     if(msg->data.size() != Y.n_elem){
         Y.resize(msg->data.size());

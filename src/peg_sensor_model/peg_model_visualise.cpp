@@ -5,7 +5,7 @@ Peg_model_visualise::Peg_model_visualise(ros::NodeHandle& nh,const std::string& 
     :vis_vectors(nh,topic_name)
 
 {
-    arrows.resize(2);
+    arrows.resize(3);
 
 
 
@@ -17,10 +17,20 @@ Peg_model_visualise::Peg_model_visualise(ros::NodeHandle& nh,const std::string& 
     arrows[1].set_rgba(1, 0, 0, 1);
     arrows[1].set_scale(0.005, 0.005, 0.005);
 
+    arrows[2] = opti_rviz::Arrow(tmp_orign,tmp_direction,"other");
+    arrows[2].set_rgba(1, 1, 0, 1);
+    arrows[2].set_scale(0.005, 0.005, 0.005);
+
     vis_vectors.initialise(frame_id,arrows);
 
 }
+void Peg_model_visualise::visualise(const arma::fcolvec3& direction, const arma::fcolvec3& pos){
 
+    opti_rviz::type_conv::vec2tf(pos,tmp_orign);
+    opti_rviz::type_conv::vec2tf(direction,tmp_direction);
+    arrows[2].set_pos_dir(tmp_orign,tmp_direction);
+
+}
 
 void Peg_model_visualise::visualise(const arma::fcolvec3&surf, const arma::fcolvec3 &model_suf, const arma::fcolvec3 edge, const arma::fcolvec3 &model_edge){
 

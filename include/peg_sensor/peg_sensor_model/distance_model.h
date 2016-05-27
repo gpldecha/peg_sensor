@@ -14,7 +14,20 @@ class Contact_distance_model : public Base_peg_sensor_model {
 
 public:
 
-    typedef enum {C_SURF=0,C_EDGE=1,C_SOCKET=2} contact_types;
+    typedef enum {C_SURF      = 0,
+                  C_EDGE_DIST = 1,
+                  C_EDGE_LEFT = 2,
+                  C_EDGE_RIGHT= 3,
+                  C_EDGE_TOP  = 4,
+                  C_EDGE_BOT  = 5,
+                  C_RING      = 6,
+                  C_S_HOLE    = 7,
+                  C_SOCKET    = 8,
+                  C_EDGE_V1   = 9,
+                  C_EDGE_V2   = 10,
+                  C_EDGE_V3   = 11,
+                  C_RING_DIST = 12
+                 } contact_types;
 
 public:
 

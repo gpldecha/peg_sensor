@@ -43,14 +43,14 @@ set(HEADER_FILES # ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/distance_features.
                  ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/base_peg_sensor_model.h
                  ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/peg_sensor_model.h
                  ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/distance_model.h
-                # ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/peg_distance_model.h
+                 ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/box_sensor_model.h
                  ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/peg_model_visualise.h
 
-                 ${INCLUDE_DIR}/peg_sensor/classifier/force_iid_model.h
-                 ${INCLUDE_DIR}/peg_sensor/classifier/gmm_model.h
+           #      ${INCLUDE_DIR}/peg_sensor/classifier/force_iid_model.h
+           #      ${INCLUDE_DIR}/peg_sensor/classifier/gmm_model.h
              #    ${INCLUDE_DIR}/peg_sensor/classifier/peg_classifier_publisher.h
-                 ${INCLUDE_DIR}/peg_sensor/classifier/base_peg_classifier.h
-                 ${INCLUDE_DIR}/peg_sensor/classifier/peg_classifier.h
+           #      ${INCLUDE_DIR}/peg_sensor/classifier/base_peg_classifier.h
+           #      ${INCLUDE_DIR}/peg_sensor/classifier/peg_classifier.h
 
                  ${INCLUDE_DIR}/peg_sensor/peg_world_wrapper/peg_world_wrapper.h
 
@@ -61,14 +61,14 @@ set(HEADER_FILES # ${INCLUDE_DIR}/peg_sensor/peg_sensor_model/distance_features.
 
 set(SRC_FILES  #  ${SRC_DIR}/peg_sensor_model/distance_features.cpp
                  ${SRC_DIR}/peg_sensor_model/distance_model.cpp
-                # ${SRC_DIR}/peg_sensor_model/peg_distance_model.cpp
+                 ${SRC_DIR}/peg_sensor_model/box_sensor_model.cpp
                  ${SRC_DIR}/peg_sensor_model/peg_sensor_model.cpp
 
 
-                 ${SRC_DIR}/classifier/force_iid_model.cpp
-                 ${SRC_DIR}/classifier/gmm_model.cpp
+       #          ${SRC_DIR}/classifier/force_iid_model.cpp
+       #          ${SRC_DIR}/classifier/gmm_model.cpp
          #        ${SRC_DIR}/classifier/peg_classifier_publisher.cpp
-                 ${SRC_DIR}/classifier/peg_classifier.cpp
+        #         ${SRC_DIR}/classifier/peg_classifier.cpp
                  ${SRC_DIR}/peg_world_wrapper/peg_world_wrapper.cpp
                  ${SRC_DIR}/listener.cpp
                  ${SRC_DIR}/peg_sensor_manager/sensor_manager.cpp
@@ -86,10 +86,10 @@ add_library(${PROJECT_NAME} SHARED ${SRC_FILES} ${HEADER_FILES})
 target_link_libraries(${PROJECT_NAME}  ${catkin_LIBRARIES}  ${LIB_STATS} )
 
 ## Declare a cpp executable
-add_executable(peg_sensor_classifier_node ${SRC_DIR}/peg_sensor_classifier_node.cpp)
-target_link_libraries(peg_sensor_classifier_node ${catkin_LIBRARIES} ${PROJECT_NAME}  )
+add_executable(virtual_peg_sensor_node ${SRC_DIR}/virtual_peg_sensor_node.cpp)
+target_link_libraries(virtual_peg_sensor_node ${catkin_LIBRARIES} ${PROJECT_NAME}  )
 
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
-add_dependencies(peg_sensor_classifier_node ${PROJECT_NAME}_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
+#add_dependencies(virtual_peg_sensor_node ${PROJECT_NAME}_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 
 

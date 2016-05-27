@@ -1,5 +1,6 @@
 #include "peg_sensor/peg_sensor_model/distance_model.h"
 #include <optitrack_rviz/type_conversion.h>
+#include <ros/ros.h>
 
 namespace psm {
 
@@ -10,7 +11,7 @@ Contact_distance_model::Contact_distance_model(Peg_sensor_model &peg_sensor_mode
 void Contact_distance_model::update(arma::colvec &Y,const arma::colvec3& pos,const arma::mat33& Rot){
     //  ROS_INFO("Contact_distance_model::update this should not be called");
     //  std::cout<< " start Contact_distance_model::update" << std::endl;
-    Y.resize(3);
+    Y.resize(13);
 
     tf::Matrix3x3 R_tmp;
     tf::Vector3   T_tmp;
@@ -20,9 +21,28 @@ void Contact_distance_model::update(arma::colvec &Y,const arma::colvec3& pos,con
     peg_sensor_model.update_model(T_tmp,R_tmp);
     peg_sensor_model.get_distance_features();
 
-    Y(C_SURF)   = peg_sensor_model.get_distance_surface();
-    Y(C_EDGE)   = peg_sensor_model.get_distance_edge();
-    Y(C_SOCKET) = peg_sensor_model.is_inside_socket();
+    Y(C_SURF)        = peg_sensor_model.get_distance_surface();
+
+    Y(C_EDGE_LEFT)   = static_cast<int>(peg_sensor_model.isInSock_Left_Edge);
+    Y(C_EDGE_RIGHT)  = static_cast<int>(peg_sensor_model.isInSock_Right_Edge);
+    Y(C_EDGE_BOT)    = static_cast<int>(peg_sensor_model.isInSock_Bot_Edge);
+    Y(C_EDGE_TOP)    = static_cast<int>(peg_sensor_model.isInSock_Top_Edge);
+
+    Y(C_EDGE_DIST)   = peg_sensor_model.get_distance_edge();
+    Y(C_RING)        = peg_sensor_model.min_distance_ring;
+    Y(C_S_HOLE)      = peg_sensor_model.min_distance_s_hole;
+    Y(C_SOCKET)      = peg_sensor_model.is_inside_socket();
+
+
+    Y(C_EDGE_V1)    = peg_sensor_model.edge_dir(0);
+    Y(C_EDGE_V2)    = peg_sensor_model.edge_dir(1);
+    Y(C_EDGE_V3)    = peg_sensor_model.edge_dir(2);
+
+    Y(C_RING_DIST)  = peg_sensor_model.min_distance_ring;
+
+    ROS_INFO_STREAM_THROTTLE(1.0,"RING: " << Y(C_RING_DIST));
+
+
     if(peg_sensor_model.is_inside_box()){
         Y(C_SURF) = -1;
     }
@@ -30,8 +50,11 @@ void Contact_distance_model::update(arma::colvec &Y,const arma::colvec3& pos,con
 }
 
 void Contact_distance_model::update(arma::mat& hY,const arma::mat& points,const arma::mat33& Rot){
+
+    // This function should not be used anymore.
+    /*
     assert(hY.n_rows == points.n_rows);
-    Yone.resize(3);
+    Yone.resize(12);
 
     tf::Matrix3x3 R_tmp;
     tf::Vector3  T_tmp;
@@ -42,84 +65,31 @@ void Contact_distance_model::update(arma::mat& hY,const arma::mat& points,const 
         peg_sensor_model.update_model(T_tmp,R_tmp);
         peg_sensor_model.get_distance_features();
 
-        Yone(C_SURF)   = peg_sensor_model.get_distance_surface();
-        Yone(C_EDGE)   = peg_sensor_model.get_distance_edge();
-        Yone(C_SOCKET) = peg_sensor_model.is_inside_socket();
+        Yone(C_SURF)            = peg_sensor_model.get_distance_surface();
 
-        // only if point is inside a box and not inside the socket boxes
+        Yone(C_EDGE_LEFT)       = static_cast<int>(peg_sensor_model.isInSock_Left_Edge);
+        Yone(C_EDGE_RIGHT)      = static_cast<int>(peg_sensor_model.isInSock_Right_Edge);
+        Yone(C_EDGE_BOT)        = static_cast<int>(peg_sensor_model.isInSock_Bot_Edge);
+        Yone(C_EDGE_TOP)        = static_cast<int>(peg_sensor_model.isInSock_Top_Edge);
+
+        Yone(C_S_HOLE)          = peg_sensor_model.min_distance_s_hole;
+        Yone(C_SOCKET)          = peg_sensor_model.is_inside_socket();
+
+
+        Yone(C_EDGE_DIST)       = peg_sensor_model.get_distance_edge();
+        Yone(C_SOCKET)          = peg_sensor_model.is_inside_socket();
+
+        Yone(C_EDGE_V1)         = peg_sensor_model.edge_dir(0);
+        Yone(C_EDGE_V2)         = peg_sensor_model.edge_dir(1);
+        Yone(C_EDGE_V3)         = peg_sensor_model.edge_dir(2);
+
         if(peg_sensor_model.is_inside_box()){
-            //    std::cout<< i << " is inside" << std::endl;
             Yone(C_SURF) = -1;
         }
+
         hY.row(i) = Yone.st();
     }
-
-}
-
-
-void Contact_distance_model::get_distance_single_point(arma::fcolvec3 &x){
-    /*   distance_features.compute_surface_edge_vector(x);
-
-    direction_surf = distance_features.point_surface - x;
-    min_distance_surface = arma::norm(direction_surf);
-
-    direction_edge = distance_features.point_edge - x;
-    min_distance_edge = arma::norm(direction_edge);*/
-
-}
-
-void Contact_distance_model::get_distances(){
-
-    /*  min_distance_surface = std::numeric_limits<float>::max();
-    min_distance_edge    = std::numeric_limits<float>::max();
-    std::size_t index_closet_point_s = -1;
-    std::size_t index_closet_point_e = -1;
-
-    isInSocket = true;
-
-    for(std::size_t i = 0; i < 3;i++)
-    {
-        distance_features.compute_surface_edge_vector(model_points.row(i).st());
-
-
-        direction_surf = distance_features.point_surface - model_points.row(i).st();
-        current_distance_surface = arma::norm(direction_surf);
-
-        direction_edge = distance_features.point_edge - model_points.row(i).st();
-        current_distance_edge = arma::norm(direction_edge);
-
-        if(current_distance_surface < min_distance_surface){
-            min_distance_surface  =current_distance_surface;
-            index_closet_point_s  = i;
-            proj_points.row(0) = distance_features.point_surface.st();
-        }
-
-        if(current_distance_edge < min_distance_edge){
-            min_distance_edge      =   current_distance_edge;
-            index_closet_point_e   =   i;
-            proj_points.row(1) = distance_features.point_edge.st();
-
-        }
-
-        isInSocket = isInSocket && is_inside_socket_box(model_points.row(i).st());
-
-
-    }
-
-    isInTable =   distance_features.bIsInside;
-
-    direction_surf = proj_points.row(0).st() - model_points.row(index_closet_point_s).st();
-    direction_edge = proj_points.row(1).st() - model_points.row(index_closet_point_e).st();
-
-    if(b_visualise){
-
-
-        opti_rviz::type_conv::vec2tf(model_points.row(index_closet_point_s).st(),dir_vectors[C_SURF].origin);
-        opti_rviz::type_conv::vec2tf(direction_surf,dir_vectors[C_SURF].direction);
-
-        opti_rviz::type_conv::vec2tf(model_points.row(index_closet_point_e).st(),dir_vectors[C_EDGE].origin);
-        opti_rviz::type_conv::vec2tf(direction_edge,dir_vectors[C_EDGE].direction);
-    }*/
+*/
 }
 
 void Contact_distance_model::initialise_vision(ros::NodeHandle& node){}

@@ -5,6 +5,10 @@
 #include "node/publisher.h"
 
 #include <objects/socket_one.h>
+#include <objects/socket_two.h>
+#include <objects/socket_three.h>
+
+
 #include <optitrack_rviz/listener.h>
 
 #include <objects/vis_socket.h>
@@ -27,11 +31,15 @@
  *
  */
 
+enum class SOCKET_TYPE{ONE,TWO,THREE};
+
 class Peg_world_wrapper{
 
 public:
 
     Peg_world_wrapper(ros::NodeHandle& nh,
+                      SOCKET_TYPE socket_type,
+                      bool bVisualise,
                       const std::string& node_name,
                       const std::string& path_sensor_model,
                       const std::string& fixed_frame,
@@ -60,13 +68,15 @@ private:
 
     void initialise_urdf(const std::string& table_urdfs,const std::string& fixed_frame);
 
-
-    void initialise_objects();
-
 public:
 
-    obj::Socket_one                            socket_one;
     std::shared_ptr<Peg_sensor_model>          peg_sensor_model;
+
+private:
+
+    obj::Socket_one                            socket_one;
+    obj::Socket_two                            socket_two;
+    obj::Socket_three                          socket_three;
 
 
 private:
@@ -78,6 +88,9 @@ private:
          std::string        socket_link_name;
          std::string        socket_link_box_name;
 
+         bool               bVisualise;
+
+         SOCKET_TYPE        socket_type;
 
          wobj::WBox         wbox;
          wobj::WBox         wbox_socket;
@@ -85,7 +98,6 @@ private:
          std::shared_ptr<ww::Publisher>             world_publisher;
          std::shared_ptr<obj::Vis_socket>           vis_socket;
          std::shared_ptr<opti_rviz::Vis_points>     vis_points;
-       //  std::shared_ptr<opti_rviz::Vis_vectors>    vis_vectors;
 
          boost::shared_ptr<opti_rviz::Vis_points>    vis_proj_sur,vis_proj_edge;
          std::vector<tf::Vector3>                    v_surf,v_edge,v_corner;
